@@ -1,23 +1,27 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Logic for Click-to-Reveal Coupon Popup ---
-    const redeemButtons = document.querySelectorAll('.btn-redeem');
-    const popupOverlay = document.getElementById('popup-overlay');
-    const popupClose = document.getElementById('popup-close');
-    const popupCode = document.getElementById('popup-code');
-    const popupCopyBtn = document.getElementById('popup-copy-btn');
+    
+    //======================================================================
+    // --- Logic for Click-to-Reveal Coupon Popup (#popup-overlay) ---
+    //======================================================================
+    
+    const redeemOfferCards = document.querySelectorAll('.offer-card-box');
+    const clickPopupOverlay = document.getElementById('popup-overlay');
+    const clickPopupClose = document.getElementById('popup-close');
+    const clickPopupCode = document.getElementById('popup-code');
+    const clickPopupCopyBtn = document.getElementById('popup-copy-btn');
 
-    if (popupOverlay) {
-        // Add click event to each redeem button
-        redeemButtons.forEach(button => {
-            button.addEventListener('click', function () {
+    if (clickPopupOverlay) {
+        // Add click event to each offer card to open the popup
+        redeemOfferCards.forEach(div => {
+            div.addEventListener('click', function () {
                 const couponId = this.id.replace('redeem-button-', '');
                 const couponCodeEl = document.getElementById(`coupon-code-${couponId}`);
                 if (couponCodeEl) {
                     const couponCode = couponCodeEl.textContent;
-                    popupCode.textContent = couponCode;
-                    popupOverlay.classList.add('active');
+                    clickPopupCode.textContent = couponCode;
+                    clickPopupOverlay.classList.add('active');
 
-                    // Highlight the clicked offer card
+                    // Highlight the clicked offer card temporarily
                     const offerCard = this.closest('.offer-card');
                     if (offerCard) {
                         offerCard.classList.add('offer-highlight');
@@ -30,26 +34,26 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Close popup with the '×' button
-        if (popupClose) {
-            popupClose.addEventListener('click', function () {
-                popupOverlay.classList.remove('active');
+        if (clickPopupClose) {
+            clickPopupClose.addEventListener('click', function () {
+                clickPopupOverlay.classList.remove('active');
             });
         }
 
         // Close popup when clicking on the overlay background
-        popupOverlay.addEventListener('click', function (e) {
-            if (e.target === popupOverlay) {
-                popupOverlay.classList.remove('active');
+        clickPopupOverlay.addEventListener('click', function (e) {
+            if (e.target === clickPopupOverlay) {
+                clickPopupOverlay.classList.remove('active');
             }
         });
 
-        // Copy code from within the popup
-        if (popupCopyBtn) {
-            popupCopyBtn.addEventListener('click', function () {
-                navigator.clipboard.writeText(popupCode.textContent).then(() => {
-                    const originalText = popupCopyBtn.textContent;
-                    popupCopyBtn.textContent = 'COPIED!';
-                    createConfetti();
+        // Copy code from within the click-to-reveal popup
+        if (clickPopupCopyBtn) {
+            clickPopupCopyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(clickPopupCode.textContent).then(() => {
+                    const originalText = clickPopupCopyBtn.textContent;
+                    clickPopupCopyBtn.textContent = 'COPIED!';
+                    createSimpleConfetti(); // Fire the simple confetti effect
 
                     // Track the event with Google Analytics
                     if (typeof gtag === 'function') {
@@ -61,16 +65,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     setTimeout(() => {
-                        popupCopyBtn.textContent = originalText;
+                        clickPopupCopyBtn.textContent = originalText;
                     }, 2000);
                 });
             });
         }
     }
 
-    // Function to create a confetti effect inside the popup
-    function createConfetti() {
-        const popup = document.querySelector('.coupon-popup');
+    // Function to create a simple confetti effect inside the click-to-reveal popup
+    function createSimpleConfetti() {
+        const popup = document.querySelector('#popup-overlay .coupon-popup');
         if (!popup) return;
         const colors = ['#FF6B00', '#FF9500', '#FFC300', '#FFE600', '#FF8A00'];
 
@@ -96,6 +100,155 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 0);
         }
     }
+
+    //======================================================================
+    // --- Logic for Auto-Open Promo Popup (#promoPopup) ---
+    //======================================================================
+
+    const promoPopup = document.getElementById("promoPopup");
+    if (!promoPopup) return; // Exit if the promo popup doesn't exist
+
+    const promoPopupContent = promoPopup.querySelector(".popup-content");
+    const promoCloseBtn = promoPopup.querySelector(".close-popup");
+    const promoCopyBtn = document.getElementById("copyButton");
+    const dontShowAgainCheckbox = document.getElementById("dontShowAgain");
+    const timerDisplay = document.getElementById('timerDisplay');
+
+    let popupOpened = false;
+    let animationFrameId; // For star animation
+
+    // Function to trigger celebration confetti using the external library
+    const triggerCelebrationEffect = () => {
+        if (typeof confetti !== 'function') return;
+
+        const duration = 2 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1001 };
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        const interval = setInterval(function() {
+            const timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) return clearInterval(interval);
+            
+            const particleCount = 50 * (timeLeft / duration);
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        }, 250);
+    };
+    
+    const startCountdown = (duration) => {
+        if (!timerDisplay) return;
+        let timer = duration;
+        const interval = setInterval(() => {
+            let minutes = String(Math.floor(timer / 60)).padStart(2, '0');
+            let seconds = String(timer % 60).padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
+            if (--timer < 0) {
+                clearInterval(interval);
+                timerDisplay.textContent = "DEAL EXPIRED";
+            }
+        }, 1000);
+    };
+
+    const stopStarAnimation = () => {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+
+    // Main function to open the promo popup
+    const openPromoPopup = () => {
+        if (popupOpened || localStorage.getItem('hidePromoPopup') === 'true') return;
+        popupOpened = true;
+        promoPopup.style.display = "flex";
+        
+        setTimeout(() => {
+            promoPopupContent.classList.add("active");
+            promoPopupContent.classList.add('shake');
+            triggerCelebrationEffect();
+            setTimeout(() => promoPopupContent.classList.remove('shake'), 600);
+        }, 10);
+        
+        startCountdown(600); // 10 minutes
+    };
+
+    // Assign close function to window to be accessible from HTML onclick
+    window.closePopup = () => {
+        if (dontShowAgainCheckbox && dontShowAgainCheckbox.checked) {
+            localStorage.setItem('hidePromoPopup', 'true');
+        }
+        promoPopupContent.classList.remove("active");
+        setTimeout(() => {
+            promoPopup.style.display = "none";
+            stopStarAnimation();
+        }, 400);
+    };
+
+    const createParticles = (button) => {
+        const rect = button.getBoundingClientRect();
+        const buttonCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            document.body.appendChild(particle);
+
+            const angle = Math.random() * 360;
+            const distance = Math.random() * 60 + 40;
+            const size = Math.random() * 4 + 4;
+
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${buttonCenter.x}px`;
+            particle.style.top = `${buttonCenter.y}px`;
+            particle.style.setProperty('--x', `${Math.cos(angle * Math.PI / 180) * distance}px`);
+            particle.style.setProperty('--y', `${Math.sin(angle * Math.PI / 180) * distance}px`);
+
+            setTimeout(() => particle.remove(), 600);
+        }
+    };
+
+    // Assign copy function to window to be accessible from HTML onclick
+    window.copyCouponCode = () => {
+        const codeEl = document.getElementById("couponCode");
+        const code = codeEl.innerText;
+        navigator.clipboard.writeText(code).then(() => {
+            const originalText = promoCopyBtn.querySelector('.copy-text').innerHTML;
+            promoCopyBtn.classList.add('copied');
+            promoCopyBtn.querySelector('.copy-text').innerHTML = 'COPIED!';
+            createParticles(promoCopyBtn);
+            setTimeout(() => {
+                promoCopyBtn.classList.remove('copied');
+                promoCopyBtn.querySelector('.copy-text').innerHTML = originalText;
+            }, 2000);
+        });
+    };
+
+    // --- Triggers for Auto-Open Popup ---
+    // Exit-intent trigger
+    document.addEventListener('mouseout', (e) => {
+        if (e.clientY <= 0) {
+            openPromoPopup();
+        }
+    });
+
+    // Time-based trigger
+    setTimeout(openPromoPopup, 2000);
+
+    // Event listener for the close button
+    if (promoCloseBtn) {
+        promoCloseBtn.addEventListener('click', window.closePopup);
+    }
+    
+    // Resize listener
+    window.addEventListener('resize', () => {
+        if (popupOpened) {
+            stopStarAnimation();
+            // If you have a setupCanvas function, it would be called here.
+            // setupCanvas(); 
+        }
+    });
 });
 
 // --- Logic for Auto-Open Promo Popup ---
@@ -387,3 +540,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 });
+
+
