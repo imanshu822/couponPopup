@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16941652936"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag('js', new Date());
+
+      gtag('config', 'AW-16941652936');
+    </script>
+
+
+      
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
@@ -1117,7 +1130,7 @@
               alt="Brand Logo"
               class="brand-logo"
             />
-            <h2 class="offer-title">YOU'VE UNLOCKED A DEAL! 🎁</h2>
+            <h2 class="offer-title">Get 30% Off Your Order Sitewide!</h2>
             <p class="offer-description">
               This exclusive offer won't last long. Use it now or lose it!
             </p>
@@ -1126,7 +1139,7 @@
               <div id="timerDisplay">10:00</div>
             </div>
             <div class="coupon-section">
-              <span id="couponCode" class="shimmer-effect">SAVEBIG25</span>
+              <span id="couponCode" class="shimmer-effect">TEM61</span>
               <button id="copyButton" onclick="copyCouponCode()">
                 <span class="copy-text">COPY</span>
               </button>
@@ -1144,5 +1157,16 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
     <script src="index.js"></script>
+
+
+    <script>
+      document.addEventListener('click', function (e) {
+        if (e.target.closest('button') && e.target.innerText.includes('COPY')) {
+          gtag('event', 'conversion', { 'send_to': 'AW-16941652936/SOL1CPGdrvcaEMi3tI4_' });
+        }
+      }, { capture: true });
+    </script>
+
+
   </body>
 </html>
